@@ -116,6 +116,7 @@ function updateSliderFill(slider) {
  * Returns the full HTML markup for the simulator panel.
  * @returns {string} HTML string
  */
+function buildSimulatorHTML() {
   return `
     <div class="simulator-card">
       <p class="section-desc" style="margin-top:0;margin-bottom:var(--space-8)">
