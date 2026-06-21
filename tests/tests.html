@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ByteSaver — Test Runner</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #030b06;
+      color: #e8fdf0;
+      font-family: 'Inter', sans-serif;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(0,230,118,0.15);
+    }
+    h1 { font-size: 1.5rem; color: #00e676; }
+    .subtitle { font-size: 0.875rem; color: #5a8070; }
+    .summary {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: rgba(9,21,16,0.8);
+      border: 1px solid rgba(0,230,118,0.15);
+      border-radius: 12px;
+      flex-wrap: wrap;
+    }
+    .summary-item { text-align: center; }
+    .summary-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .summary-lbl { font-size: 0.75rem; color: #5a8070; margin-top: 4px; }
+    .pass-num { color: #00e676; }
+    .fail-num { color: #f87171; }
+    .total-num { color: #9fc9b0; }
+    .tests { display: flex; flex-direction: column; gap: 0.5rem; }
+    .test {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      border: 1px solid transparent;
+    }
+    .test.pass {
+      background: rgba(0,192,90,0.05);
+      border-color: rgba(0,192,90,0.15);
+    }
+    .test.fail {
+      background: rgba(248,113,113,0.05);
+      border-color: rgba(248,113,113,0.2);
+    }
+    .test-icon { flex-shrink: 0; font-size: 1rem; }
+    .test-desc { color: #c9d9cf; flex: 1; font-family: 'JetBrains Mono', monospace; }
+    .test-detail { font-size: 0.75rem; color: #5a8070; margin-top: 2px; }
+    .test-detail.fail-detail { color: #f87171; }
+    .loading { color: #5a8070; font-style: italic; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0,192,90,0.1);
+      border: 1px solid rgba(0,192,90,0.2);
+      border-radius: 8px;
+      color: #00e676;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin-bottom: 1.5rem;
+    }
+    .back-btn:hover { background: rgba(0,192,90,0.15); }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-btn">← Back to ByteSaver</a>
+
+  <div class="header">
+    <span style="font-size:2rem">🌿</span>
+    <div>
+      <h1>ByteSaver Test Runner</h1>
+      <div class="subtitle">Carbon utility unit tests · carbon.test.js</div>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="loading">Running tests…</div>
+  </div>
+
+  <div class="tests" id="tests-output" role="list" aria-label="Test results">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <script type="module">
+    import { getTestResults, runSummary } from './carbon.test.js';
+
+    const results = getTestResults();
+    const { pass, fail, total } = runSummary();
+
+    // Summary
+    document.querySelector('#summary').innerHTML = `
+      <div class="summary-item">
+        <div class="summary-num pass-num">${pass}</div>
+        <div class="summary-lbl">Passed</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num fail-num">${fail}</div>
+        <div class="summary-lbl">Failed</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num total-num">${total}</div>
+        <div class="summary-lbl">Total</div>
+      </div>
+      <div class="summary-item" style="margin-left:auto;align-self:center">
+        ${fail === 0
+          ? '<span style="color:#00e676;font-weight:600">✅ All tests passed!</span>'
+          : `<span style="color:#f87171;font-weight:600">❌ ${fail} test${fail > 1 ? 's' : ''} failed</span>`
+        }
+      </div>`;
+
+    // Individual results
+    const output = document.querySelector('#tests-output');
+    output.innerHTML = results.map((r) => `
+      <div class="test ${r.pass ? 'pass' : 'fail'}" role="listitem" aria-label="${r.pass ? 'PASS' : 'FAIL'}: ${r.description}">
+        <span class="test-icon">${r.pass ? '✅' : '❌'}</span>
+        <div>
+          <div class="test-desc">${r.description}</div>
+          ${!r.pass
+            ? `<div class="test-detail fail-detail">Expected: ${r.expected} · Got: ${r.actual}</div>`
+            : `<div class="test-detail">→ ${r.actual}</div>`
+          }
+        </div>
+      </div>`).join('');
+
+    // Page title
+    document.title = `ByteSaver Tests — ${pass}/${total} passed`;
+  </script>
+</body>
+</html>

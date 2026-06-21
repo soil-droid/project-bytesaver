@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#030b06"/>
+
+  <!-- SEO -->
+  <title>Project ByteSaver — Reduce Your Digital Carbon Footprint</title>
+  <meta name="description" content="Gamified platform to reduce your digital carbon footprint by deleting redundant emails, cloud backups, and app caches. Every GB deleted saves 0.25 kg CO₂ per year."/>
+  <meta name="keywords" content="carbon footprint, digital sustainability, data deletion, CO2, green tech, email cleanup"/>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Project ByteSaver"/>
+  <meta property="og:description" content="Delete data. Save CO₂. Track your green impact."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:image" content="assets/favicon.svg"/>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg"/>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style/main.css"/>
+  <link rel="stylesheet" href="style/components.css"/>
+  <link rel="stylesheet" href="style/animations.css"/>
+
+  <style>
+    /* ── Inline page-specific styles ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+    }
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      transition: all var(--transition-base);
+    }
+    .about-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .about-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-3);
+    }
+    .about-card h3 {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+      color: var(--text-primary);
+    }
+    .about-card p {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .fact-ticker {
+      overflow: hidden;
+      padding: var(--space-4) 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: var(--space-8) 0;
+      position: relative;
+    }
+    .fact-ticker::before,
+    .fact-ticker::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      z-index: 1;
+    }
+    .fact-ticker::before { left: 0; background: linear-gradient(to right, var(--dark-950), transparent); }
+    .fact-ticker::after  { right: 0; background: linear-gradient(to left, var(--dark-950), transparent); }
+    .ticker-track {
+      display: flex;
+      gap: var(--space-12);
+      animation: tickerScroll 30s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .ticker-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green-glow);
+      flex-shrink: 0;
+    }
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* Global Toast */
+    #global-toast {
+      position: fixed;
+      bottom: calc(56px + var(--space-6) + var(--space-4) + 56px + var(--space-3));
+      right: var(--space-6);
+      z-index: 250;
+      padding: var(--space-3) var(--space-5);
+      background: var(--dark-800);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius-full);
+      font-size: var(--text-sm);
+      color: var(--green-400);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all var(--transition-spring);
+      pointer-events: none;
+    }
+    #global-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Mobile nav drawer */
+    #mobile-nav-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      background: rgba(3, 11, 6, 0.97);
+      backdrop-filter: blur(16px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-6);
+      transform: scale(1.02);
+      transition: all var(--transition-base);
+    }
+    #mobile-nav-drawer.open {
+      display: flex;
+      transform: scale(1);
+    }
+    #mobile-nav-drawer a {
+      font-family: var(--font-display);
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: color var(--transition-fast);
+    }
+    #mobile-nav-drawer a:hover { color: var(--green-glow); }
+
+    @media (max-width: 768px) {
+      .about-grid { grid-template-columns: 1fr; }
+      #mobile-nav-toggle { display: flex !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ████████ BACKGROUND ████████ -->
+<div class="bg-canvas" aria-hidden="true"></div>
+<div class="particles" aria-hidden="true"></div>
+
+<!-- ████████ SKIP NAV (Accessibility) ████████ -->
+<a class="skip-nav" href="#dashboard">Skip to main content</a>
+
+<!-- ████████ NAVIGATION ████████ -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+
+    <!-- Logo -->
+    <a href="#" class="nav-logo" aria-label="Project ByteSaver — home">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="rgba(0,230,118,0.08)"/>
+        <path d="M16 4C10 4 6 10 6 16c0 3.5 1.5 6.5 4 8.5L16 28l6-3.5c2.5-2 4-5 4-8.5 0-6-4-12-10-12z" fill="#00e676"/>
+        <path d="M16 28V14M16 14C16 14 10 12 8 8" stroke="#030b06" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      ByteSaver
+    </a>
+
+    <!-- Desktop nav links -->
+    <ul class="nav-links" role="list">
+      <li><a href="#dashboard"   class="nav-link active">Dashboard</a></li>
+      <li><a href="#simulate"    class="nav-link">Simulate</a></li>
+      <li><a href="#leaderboard" class="nav-link">Leaderboard</a></li>
+      <li><a href="#about"       class="nav-link">About</a></li>
+      <li><a href="tests/tests.html" class="nav-link" target="_blank" rel="noopener">Tests</a></li>
+    </ul>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+      <button id="btn-profile" class="btn btn-ghost btn-sm" aria-label="Edit your profile">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Profile
+      </button>
+      <button id="btn-settings" class="btn btn-primary btn-sm" aria-label="Open settings to enter API key">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93l-1.41 1.41M4.93 19.07l-1.41 1.41M21 12h-2M3 12H1M19.07 19.07l-1.41-1.41M4.93 4.93l-1.41 1.41M12 3V1M12 23v-2"/>
+        </svg>
+        ⚙️ API Key
+      </button>
+
+      <!-- Mobile hamburger -->
+      <button id="mobile-nav-toggle" class="btn btn-icon btn-ghost" style="display:none"
+              aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav-drawer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile nav drawer -->
+<div id="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
+  <a href="#dashboard">Dashboard</a>
+  <a href="#simulate">Simulate</a>
+  <a href="#leaderboard">Leaderboard</a>
+  <a href="#about">About</a>
+  <a href="tests/tests.html" target="_blank" rel="noopener">Tests</a>
+</div>
+
+<!-- ████████ MAIN CONTENT ████████ -->
+<main id="main-content">
+
+  <!-- ═══════════════════════════════════════
+       HERO
+  ══════════════════════════════════════════ -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="hero-badge animate-fadeIn">
+        <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+          <circle cx="5" cy="5" r="5" fill="#00e676"/>
+        </svg>
+        Digital Sustainability Campaign
+      </div>
+
+      <h1 class="hero-title animate-fadeUp" id="hero-title">
+        Every Byte You Delete<br/>
+        <span class="highlight">Heals the Planet</span>
+      </h1>
+
+      <p class="hero-subtitle animate-fadeUp" style="animation-delay:0.1s">
+        Storing 1 GB of data emits <strong>250 g of CO₂ per year</strong>.
+        ByteSaver turns your digital cleanup into measurable climate action —
+        then lets you prove it.
+      </p>
+
+      <div class="flex items-center justify-center gap-4 animate-fadeUp" style="animation-delay:0.2s;flex-wrap:wrap">
+        <a href="#dashboard" class="btn btn-primary btn-lg" aria-label="Start your cleanup journey">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12l7 7 7-7"/>
+          </svg>
+          Start Cleanup
+        </a>
+        <a href="#simulate" class="btn btn-ghost btn-lg" aria-label="Explore your impact with the simulator">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 1 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+          Explore Impact
+        </a>
+      </div>
+
+      <!-- Hero stats -->
+      <div class="hero-stats animate-fadeUp" style="animation-delay:0.3s">
+        <div class="hero-stat">
+          <div class="hero-stat-value">
+            <span data-count-to="250">0</span>g
+          </div>
+          <div class="hero-stat-label">CO₂ per GB/year</div>
+        </div>
+        <div class="hero-divider" aria-hidden="true"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">
+            <span data-count-to="1">0</span>%
+          </div>
+          <div class="hero-stat-label">of global electricity</div>
+        </div>
+        <div class="hero-divider" aria-hidden="true"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">
+            <span data-count-to="3.3">0</span>×
+          </div>
+          <div class="hero-stat-label">avg data hoarding factor</div>
+        </div>
+        <div class="hero-divider" aria-hidden="true"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value">
+            120
+          </div>
+          <div class="hero-stat-label">phones per 1 kg CO₂</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       FACT TICKER
+  ══════════════════════════════════════════ -->
+  <div class="fact-ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <!-- Two copies for seamless loop -->
+      <span class="ticker-item"><span class="ticker-dot"></span>Data centers use billions of gallons of water annually just for cooling servers</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>The average email generates 4g of CO₂ — a spam folder of 1,000 emails = 4kg CO₂</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Streaming 1 hour of HD video emits ~36g of CO₂</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>70% of stored enterprise data is dark data — never accessed after creation</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>A cloud backup of 50GB generates 12.5kg CO₂ per year</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Digital carbon accounts for 3.7% of global greenhouse gas emissions</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Data centers use billions of gallons of water annually just for cooling servers</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>The average email generates 4g of CO₂ — a spam folder of 1,000 emails = 4kg CO₂</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Streaming 1 hour of HD video emits ~36g of CO₂</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>70% of stored enterprise data is dark data — never accessed after creation</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>A cloud backup of 50GB generates 12.5kg CO₂ per year</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Digital carbon accounts for 3.7% of global greenhouse gas emissions</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       DASHBOARD SECTION
+  ══════════════════════════════════════════ -->
+  <section id="dashboard" class="section" aria-labelledby="dashboard-title">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-eyebrow">Your Impact</div>
+        <h2 class="section-title" id="dashboard-title">Digital Cleanup Dashboard</h2>
+        <p class="section-desc">
+          Log the data you've deleted and watch your CO₂ savings accumulate in real-time.
+          Every megabyte counts.
+        </p>
+      </div>
+
+      <!-- Dashboard component mount point -->
+      <div id="dashboard-mount" class="reveal" aria-live="polite"></div>
+
+      <!-- Equivalency Cards -->
+      <div style="margin-top:var(--space-10)">
+        <h3 class="section-eyebrow reveal" style="margin-bottom:var(--space-6)">
+          What your savings equal in the real world
+        </h3>
+        <div id="equiv-mount" class="reveal reveal-delay-1"></div>
+      </div>
+
+      <!-- Share Card -->
+      <div id="share-mount" style="margin-top:var(--space-10)" aria-live="polite"></div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       IMPACT SIMULATOR
+  ══════════════════════════════════════════ -->
+  <section id="simulate" class="section" aria-labelledby="sim-title">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-eyebrow">Explore</div>
+        <h2 class="section-title" id="sim-title">Impact Simulator</h2>
+        <p class="section-desc">
+          Curious about your potential? Drag the sliders to explore how much CO₂ you could
+          save — no data logged, just eye-opening numbers.
+        </p>
+      </div>
+      <div id="simulator-mount" class="reveal reveal-delay-1"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       LEADERBOARD
+  ══════════════════════════════════════════ -->
+  <section id="leaderboard" class="section" aria-labelledby="lb-title">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-10);align-items:start">
+
+        <div>
+          <div class="section-header reveal">
+            <div class="section-eyebrow">Community</div>
+            <h2 class="section-title" id="lb-title">Club Leaderboard</h2>
+            <p class="section-desc">
+              Compete with communities worldwide. Every cleanup you log
+              counts toward your club's collective CO₂ score.
+            </p>
+          </div>
+
+          <!-- How to earn points -->
+          <div class="info-banner reveal reveal-delay-1" style="margin-top:var(--space-6)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <span>
+              Your score updates automatically when you log cleanup entries.
+              Set your club name in <strong>Profile</strong> to join a team.
+            </span>
+          </div>
+        </div>
+
+        <div id="leaderboard-mount" class="reveal reveal-delay-2"
+             role="region" aria-label="Community leaderboard"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       ABOUT / EDUCATION
+  ══════════════════════════════════════════ -->
+  <section id="about" class="section" aria-labelledby="about-title">
+    <div class="container">
+      <div class="section-header reveal" style="text-align:center">
+        <div class="section-eyebrow">Why It Matters</div>
+        <h2 class="section-title" id="about-title">The Digital Carbon Crisis</h2>
+        <p class="section-desc" style="margin:var(--space-4) auto 0">
+          Your phone and laptop feel weightless — but the data they generate
+          has a very real physical footprint.
+        </p>
+      </div>
+
+      <div class="about-grid" style="margin-top:var(--space-10)">
+        <div class="about-card reveal reveal-delay-1">
+          <div class="about-icon">🏭</div>
+          <h3>Data Centers = Factories</h3>
+          <p>
+            Global data centers consume over <strong>200 TWh</strong> of electricity per year —
+            comparable to the annual electricity use of some medium-sized countries.
+            Most of that energy goes to servers holding data nobody accesses.
+          </p>
+        </div>
+        <div class="about-card reveal reveal-delay-2">
+          <div class="about-icon">💧</div>
+          <h3>Water: The Hidden Cost</h3>
+          <p>
+            Data centers use <strong>billions of gallons of water annually</strong> just to cool
+            their servers. One average data center can consume as much water as
+            a hospital or a small manufacturing plant. Cooling unused files is
+            a literal waste of a precious resource.
+          </p>
+        </div>
+        <div class="about-card reveal reveal-delay-3">
+          <div class="about-icon">📧</div>
+          <h3>The Email Problem</h3>
+          <p>
+            Sending or receiving a single email emits <strong>4 grams of CO₂</strong>
+            — up to <strong>50 g with large attachments</strong>. With 300+ billion
+            emails sent every day, our inboxes are one of the planet's most
+            overlooked pollution sources.
+          </p>
+        </div>
+        <div class="about-card reveal reveal-delay-1">
+          <div class="about-icon">📸</div>
+          <h3>Duplicate Photos</h3>
+          <p>
+            The average smartphone user has <strong>3× more photos</strong> than they
+            need — burst shots, near-identical frames, blurry takes. Auto-uploading
+            these to the cloud multiplies their carbon cost many times over,
+            often across multiple backup services simultaneously.
+          </p>
+        </div>
+        <div class="about-card reveal reveal-delay-2">
+          <div class="about-icon">🌿</div>
+          <h3>Your Action Scales</h3>
+          <p>
+            When millions of people delete even <strong>5 GB each</strong>, the
+            aggregate saving is enormous. ByteSaver's leaderboard turns
+            individual micro-actions into a visible, collective wave of
+            climate progress.
+          </p>
+        </div>
+        <div class="about-card reveal reveal-delay-3">
+          <div class="about-icon">🔢</div>
+          <h3>The Math Is Simple</h3>
+          <p>
+            <strong>1 GB deleted</strong> → 0.25 kg CO₂ saved/year.<br/>
+            <strong>1 kg CO₂</strong> = 4 km not driven 🚗<br/>
+            <strong>1 kg CO₂</strong> = 120 phones not charged 📱<br/>
+            <strong>20 kg CO₂</strong> = 1 tree's full year of work 🌳
+          </p>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin-top:var(--space-16)" class="reveal">
+        <a href="#dashboard" class="btn btn-primary btn-lg">
+          Start Your Digital Cleanup
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <p style="margin-top:var(--space-3);font-size:var(--text-sm);color:var(--text-muted)">
+          Open source · No sign-up required · Your data stays on your device
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════════ -->
+  <footer style="border-top:1px solid var(--border);padding:var(--space-8) 0;margin-top:var(--space-8)" role="contentinfo">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-4)">
+      <div style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm);color:var(--text-muted)">
+        <span>🌿</span>
+        <span>Project ByteSaver · Built for the planet · 2025</span>
+      </div>
+      <div style="display:flex;gap:var(--space-4);font-size:var(--text-xs);color:var(--text-muted)">
+        <a href="tests/tests.html" target="_blank" rel="noopener" style="color:var(--text-muted);transition:color 0.2s"
+           onmouseover="this.style.color='var(--green-400)'" onmouseout="this.style.color='var(--text-muted)'">
+          Run Tests
+        </a>
+        <span>·</span>
+        <span>CO₂ data: IEA, EPA, Carbon Trust, USDA</span>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- ████████ AI CHAT FAB + PANEL ████████ -->
+<button id="chat-fab" class="chat-fab" aria-label="Open GreenBytes Guide chat assistant" aria-expanded="false" aria-controls="chat-panel">
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+
+<div id="chat-panel" class="chat-panel" role="dialog" aria-modal="true" aria-label="GreenBytes Guide AI assistant" aria-hidden="true">
+  <div class="chat-header">
+    <div class="chat-avatar" aria-hidden="true">🌿</div>
+    <div>
+      <div class="chat-name">GreenBytes Guide</div>
+      <div class="chat-status">
+        <span class="status-dot" aria-hidden="true"></span>
+        Online · Powered by Gemini
+      </div>
+    </div>
+    <button onclick="document.querySelector('#chat-fab').click()" class="btn btn-icon btn-ghost" style="margin-left:auto"
+            aria-label="Close chat panel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Chat conversation"></div>
+
+  <div class="chat-input-area">
+    <textarea
+      id="chat-input"
+      class="chat-input"
+      placeholder="Ask about reducing digital CO₂…"
+      rows="1"
+      aria-label="Type your message to GreenBytes Guide"
+      aria-multiline="true"
+    ></textarea>
+    <button id="chat-send" class="btn btn-primary btn-icon" aria-label="Send message">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ████████ SETTINGS MODAL ████████ -->
+<div id="settings-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="modal" id="settings-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6)">
+      <h2 class="modal-title" id="settings-title" style="margin:0">⚙️ Settings</h2>
+      <button id="btn-settings-close" class="btn btn-icon btn-ghost" aria-label="Close settings modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="info-banner" style="margin-bottom:var(--space-6)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>
+        Your API key is stored only in <strong>sessionStorage</strong> — it's cleared when you close the tab
+        and never sent anywhere except the Gemini API directly.
+      </span>
+    </div>
+
+    <div class="form-group" style="margin-bottom:var(--space-6)">
+      <label class="label" for="settings-api-key">
+        Gemini API Key
+      </label>
+      <div style="display:flex;gap:var(--space-2)">
+        <input
+          id="settings-api-key"
+          class="input"
+          type="password"
+          placeholder="AIza…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-describedby="key-hint"
+        />
+        <button id="btn-toggle-key" class="btn btn-ghost btn-icon" aria-label="Toggle API key visibility" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+      <p id="key-hint" style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-1)">
+        Get a free key at
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"
+           style="color:var(--green-500)">aistudio.google.com</a>
+      </p>
+    </div>
+
+    <div id="settings-toast" style="display:none;margin-bottom:var(--space-4);font-size:var(--text-sm)"></div>
+
+    <div style="display:flex;gap:var(--space-3)">
+      <button id="btn-settings-save" class="btn btn-primary" style="flex:1" aria-label="Save API key">
+        Save Key
+      </button>
+      <button id="btn-settings-close-2" class="btn btn-ghost" onclick="document.querySelector('#btn-settings-close').click()" aria-label="Cancel">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ████████ PROFILE MODAL ████████ -->
+<div id="profile-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+  <div class="modal" id="profile-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6)">
+      <h2 class="modal-title" id="profile-title" style="margin:0">👤 Your Profile</h2>
+      <button id="btn-profile-close" class="btn btn-icon btn-ghost" aria-label="Close profile modal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="form-group" style="margin-bottom:var(--space-4)">
+      <label class="label" for="profile-name">Display Name</label>
+      <input id="profile-name" class="input" type="text" placeholder="e.g. Alex Green" maxlength="40"
+             aria-label="Your display name" value="You"/>
+    </div>
+
+    <div class="form-group" style="margin-bottom:var(--space-6)">
+      <label class="label" for="profile-club">Club / Community</label>
+      <input id="profile-club" class="input" type="text" placeholder="e.g. EcoHackers Berlin" maxlength="40"
+             aria-label="Your club or community name" value="Solo Cleaner"/>
+      <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-1)">
+        This appears on the leaderboard and your share card.
+      </p>
+    </div>
+
+    <button id="btn-profile-save" class="btn btn-primary" style="width:100%" aria-label="Save profile">
+      Save Profile
+    </button>
+  </div>
+</div>
+
+<!-- ████████ GLOBAL TOAST ████████ -->
+<div id="global-toast" aria-live="polite" aria-atomic="true" role="status"></div>
+
+<!-- ████████ SCRIPTS ████████ -->
+<script type="module" src="js/main.js"></script>
+
+</body>
+</html>
