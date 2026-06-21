@@ -31,18 +31,6 @@ function assertEqual(description, actual, expected) {
   return pass;
 }
 
-/**
- * Numeric approximate assertion.
- * @param {string} description
- * @param {number} actual
- * @param {number} expected
- * @param {number} tolerance
- */
-function assertApprox(description, actual, expected, tolerance = 0.0001) {
-  const pass = Math.abs(actual - expected) <= tolerance;
-  results.push({ description, actual, expected, pass });
-  return pass;
-}
 
 // ── formatCO2 ─────────────────────────────────────────────────
 
@@ -213,7 +201,7 @@ assertEqual(
 assertEqual(
   'truncate default maxLen=50',
   truncate('a'.repeat(51)),
-  'a'.repeat(49) + '…'
+  `${'a'.repeat(49)  }…`
 );
 
 // ── sanitize ───────────────────────────────────────────────────────

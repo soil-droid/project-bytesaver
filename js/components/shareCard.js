@@ -23,7 +23,7 @@ export function renderShareCard(container, data) {
   const root = typeof container === 'string'
     ? document.querySelector(container)
     : container;
-  if (!root) return;
+  if (!root) {return;}
 
   const { name, club, co2Kg, entries = [] } = data;
   const eq   = getEquivalencies(co2Kg);
@@ -164,17 +164,115 @@ async function copyToClipboard(text, btn) {
     btn.innerHTML = '✅ Copied!';
     setTimeout(() => { btn.innerHTML = original; }, 2000);
   } catch (_) {
-    alert('Could not copy to clipboard. Please copy manually:\n\n' + text);
+    customAlert(`Could not copy to clipboard. Please copy manually:\n\n${text}`);
   }
 }
 
 function showPrintGuide() {
-  alert(
+  customAlert(
     '📸 Screenshot Guide\n\n' +
     'Windows: Win + Shift + S, then drag over the card.\n' +
     'Mac: Cmd + Shift + 4, then drag over the card.\n' +
     'Mobile: Use your device\'s screenshot shortcut and crop to the card.'
   );
+}
+
+/**
+ * Renders a premium, accessible custom modal dialog to replace the native browser alert.
+ * @param {string} message - The text content to display
+ */
+function customAlert(message) {
+  let dialog = document.getElementById('custom-alert-dialog');
+  if (!dialog) {
+    dialog = document.createElement('div');
+    dialog.id = 'custom-alert-dialog';
+    dialog.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+      background: var(--dark-850);
+      border: 1px solid var(--border-hover);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-6);
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.9);
+      transition: transform var(--transition-spring);
+      color: var(--text-primary);
+      text-align: left;
+    `;
+
+    const textEl = document.createElement('p');
+    textEl.id = 'custom-alert-text';
+    textEl.style.cssText = `
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      white-space: pre-line;
+      margin-bottom: var(--space-6);
+    `;
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Got it';
+    btn.style.cssText = `
+      width: 100%;
+      padding: var(--space-3);
+      background: linear-gradient(135deg, var(--green-600), var(--green-500));
+      color: var(--dark-950);
+      border-radius: var(--radius-lg);
+      font-weight: 600;
+      font-size: var(--text-sm);
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    `;
+    btn.addEventListener('mouseenter', () => {
+      btn.style.boxShadow = '0 0 15px rgba(0, 230, 118, 0.4)';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.boxShadow = 'none';
+    });
+
+    const closeDialog = () => {
+      dialog.style.opacity = '0';
+      content.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        dialog.style.display = 'none';
+      }, 250);
+    };
+
+    btn.addEventListener('click', closeDialog);
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        closeDialog();
+      }
+    });
+
+    content.appendChild(textEl);
+    content.appendChild(btn);
+    dialog.appendChild(content);
+    document.body.appendChild(dialog);
+  }
+
+  const textEl = dialog.querySelector('#custom-alert-text');
+  textEl.textContent = message;
+
+  dialog.style.display = 'flex';
+  // Force a layout reflow
+  dialog.offsetHeight;
+  dialog.style.opacity = '1';
+  dialog.querySelector('div').style.transform = 'scale(1)';
 }
 
 // Note: HTML escaping is handled by sanitize() imported from format.js

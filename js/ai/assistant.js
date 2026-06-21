@@ -41,7 +41,6 @@ Once they answer, provide exact, numbered UI steps specific to their device. For
 Always end your response with one actionable tip or encouragement related to Project ByteSaver.`;
 
 let history = []; // {role, text}[]
-let pendingOSContext = null; // tracks if we're waiting for OS reply
 
 /**
  * Mounts the AI chat panel and FAB.
@@ -49,7 +48,7 @@ let pendingOSContext = null; // tracks if we're waiting for OS reply
  */
 export function mountAssistant(els) {
   const { fab, panel, messagesEl, inputEl, sendBtn } = els;
-  if (!fab || !panel) return;
+  if (!fab || !panel) {return;}
 
   // Open/close FAB
   fab.addEventListener('click', () => {
@@ -85,7 +84,7 @@ export function mountAssistant(els) {
 async function handleSend(els) {
   const { messagesEl, inputEl, sendBtn } = els;
   const rawText = inputEl.value.trim();
-  if (!rawText) return;
+  if (!rawText) {return;}
 
   // Sanitize: use textContent only, never innerHTML for user content
   const safeText = rawText.slice(0, 1000); // hard cap
@@ -114,7 +113,7 @@ async function handleSend(els) {
     history.push({ role: 'model', text: reply });
 
     // Trim history to last 5 turns (10 messages)
-    if (history.length > 10) history = history.slice(history.length - 10);
+    if (history.length > 10) {history = history.slice(history.length - 10);}
 
     typingEl.remove();
     appendBotMessage(messagesEl, reply);
@@ -161,8 +160,8 @@ async function callGemini(apiKey, userText) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = err?.error?.message || `API error ${res.status}`;
-    if (res.status === 400) throw new Error('Invalid API key or request. ' + msg);
-    if (res.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
+    if (res.status === 400) {throw new Error(`Invalid API key or request. ${  msg}`);}
+    if (res.status === 429) {throw new Error('Rate limit reached. Please wait a moment and try again.');}
     throw new Error(msg);
   }
 
@@ -172,7 +171,7 @@ async function callGemini(apiKey, userText) {
   if (!text) {
     // Check for safety block
     const reason = data?.candidates?.[0]?.finishReason;
-    if (reason === 'SAFETY') throw new Error('Response blocked by safety filters.');
+    if (reason === 'SAFETY') {throw new Error('Response blocked by safety filters.');}
     throw new Error('Empty response from AI. Please try rephrasing.');
   }
 
@@ -200,7 +199,7 @@ function appendBotMessage(container, text) {
 function appendUserMessage(container, text) {
   const wrap = document.createElement('div');
   wrap.className = 'msg msg-user';
-  wrap.setAttribute('aria-label', 'You: ' + text.slice(0, 50));
+  wrap.setAttribute('aria-label', `You: ${  text.slice(0, 50)}`);
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
