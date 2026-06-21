@@ -11,7 +11,7 @@
  */
 
 import { gbToCO2Kg, mbToCO2Kg, emailsToCO2Kg, totalCO2Kg } from '../utils/carbon.js';
-import { formatCO2, formatNumber, getCO2Tier } from '../utils/format.js';
+import { formatCO2, formatNumber, getCO2Tier, sanitize } from '../utils/format.js';
 import { createTooltip } from './tooltip.js';
 import { renderEquivalency } from './equivalency.js';
 import { renderShareCard } from './shareCard.js';
@@ -397,12 +397,12 @@ function renderLog(root) {
             ${CATEGORY_ICONS[entry.category] || '📁'}
           </div>
           <div class="log-entry-info">
-            <div class="log-entry-name">${escapeText(entry.label)}</div>
+            <div class="log-entry-name">${sanitize(entry.label)}</div>
             <div class="log-entry-meta">${formatNumber(entry.value, 2)} ${entry.unit}</div>
           </div>
           <div class="log-entry-co2">${formatCO2(entry.co2Kg)}</div>
           <button class="log-entry-delete btn btn-icon" data-delete-id="${entry.id}"
-                  aria-label="Delete log entry: ${escapeText(entry.label)}">
+                  aria-label="Delete log entry: ${sanitize(entry.label)}">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="3 6 5 6 21 6"/>
@@ -456,11 +456,7 @@ function showError(el, msg) {
   setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
-function escapeText(str) {
-  const el = document.createElement('div');
-  el.textContent = String(str).slice(0, 80);
-  return el.innerHTML;
-}
+// Note: HTML escaping delegated to sanitize() from format.js
 
 /** Public: update user profile used in share card & leaderboard */
 export function setUser(name, club) {

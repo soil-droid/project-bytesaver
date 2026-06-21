@@ -89,6 +89,10 @@ export function mountSimulator(container) {
   update(); // initial render
 }
 
+/**
+ * Updates a range input's fill gradient to reflect its current value.
+ * @param {HTMLInputElement} slider
+ */
 function updateSliderFill(slider) {
   const min = parseFloat(slider.min);
   const max = parseFloat(slider.max);
@@ -100,6 +104,10 @@ function updateSliderFill(slider) {
     var(--dark-700) ${pct}%)`;
 }
 
+/**
+ * Returns the full HTML markup for the simulator panel.
+ * @returns {string} HTML string
+ */
 function buildSimulatorHTML() {
   return `
     <div class="simulator-card">

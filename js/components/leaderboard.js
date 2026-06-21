@@ -5,7 +5,7 @@
  * Backs data with localStorage. Seeds 5 mock clubs on first run.
  */
 
-import { formatNumber } from '../utils/format.js';
+import { formatNumber, sanitize } from '../utils/format.js';
 
 const STORAGE_KEY = 'bytesaver_leaderboard';
 
@@ -80,8 +80,8 @@ export function renderLeaderboard(container) {
                aria-label="Rank ${rank}: ${entry.name}, ${formatNumber(entry.co2Kg, 2)} kg CO₂ saved">
             <div class="badge-rank ${rankClass}" aria-hidden="true">${rank}</div>
             <div class="leaderboard-info">
-              <div class="leaderboard-name">${escapeHtml(entry.name)}</div>
-              <div class="leaderboard-club">${escapeHtml(entry.club)} · ${entry.members} member${entry.members !== 1 ? 's' : ''}</div>
+              <div class="leaderboard-name">${sanitize(entry.name)}</div>
+              <div class="leaderboard-club">${sanitize(entry.club)} · ${entry.members} member${entry.members !== 1 ? 's' : ''}</div>
             </div>
             <div class="leaderboard-bar-wrap" aria-hidden="true">
               <div class="leaderboard-bar" style="width:${pct}%"></div>
@@ -101,8 +101,4 @@ export function renderLeaderboard(container) {
   });
 }
 
-function escapeHtml(str) {
-  const el = document.createElement('div');
-  el.textContent = String(str).slice(0, 60);
-  return el.innerHTML;
-}
+// Note: HTML escaping delegated to sanitize() from format.js

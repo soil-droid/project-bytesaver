@@ -1,6 +1,11 @@
 /**
  * main.js — App Bootstrap & Orchestration
  * Project ByteSaver
+ *
+ * Entry point that initialises all components, wires up modals,
+ * starts the particle canvas, and sets up scroll-reveal & nav highlighting.
+ *
+ * @module main
  */
 
 import { mountDashboard, setUser } from './components/dashboard.js';
@@ -49,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Particles ─────────────────────────────────────────────────
+/** Creates floating particle elements on the hero canvas. */
 function initParticles() {
   const canvas = document.querySelector('.particles');
   if (!canvas) return;
@@ -72,6 +78,7 @@ function initParticles() {
 }
 
 // ── Scroll Reveal ─────────────────────────────────────────────
+/** Sets up IntersectionObserver-driven scroll-reveal for .reveal elements. */
 function initScrollReveal() {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -95,6 +102,7 @@ function initScrollReveal() {
 }
 
 // ── Nav Highlight ─────────────────────────────────────────────
+/** Highlights the active nav link based on which section is in the viewport. */
 function initNavHighlight() {
   const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
@@ -119,6 +127,7 @@ function initNavHighlight() {
 }
 
 // ── Mobile Nav ────────────────────────────────────────────────
+/** Wires the hamburger toggle for the mobile full-screen nav drawer. */
 function initMobileNav() {
   const toggle = document.querySelector('#mobile-nav-toggle');
   const links  = document.querySelector('#mobile-nav-drawer');
@@ -137,6 +146,7 @@ function initMobileNav() {
 }
 
 // ── Settings Modal ────────────────────────────────────────────
+/** Initialises the Gemini API key settings modal (open/close/save/validate). */
 function initSettingsModal() {
   const modal   = document.querySelector('#settings-modal');
   const overlay = document.querySelector('#settings-overlay');
@@ -198,6 +208,7 @@ function initSettingsModal() {
 }
 
 // ── Profile Modal ─────────────────────────────────────────────
+/** Initialises the user profile modal (name + club name). */
 function initProfileModal() {
   const modal    = document.querySelector('#profile-modal');
   const overlay  = document.querySelector('#profile-overlay');
@@ -228,6 +239,7 @@ function initProfileModal() {
 }
 
 // ── Hero Counter Animation ────────────────────────────────────
+/** Animates [data-count-to] counters in the hero section using ease-out-cubic. */
 function animateHeroCounters() {
   const counters = document.querySelectorAll('[data-count-to]');
   counters.forEach((el) => {
@@ -259,6 +271,12 @@ function animateHeroCounters() {
 }
 
 // ── Toast Helpers ─────────────────────────────────────────────
+/**
+ * Displays a toast notification inside a given element.
+ * @param {HTMLElement|null} el   - The toast container element
+ * @param {string}           msg  - Message text
+ * @param {'success'|'error'} [type='success'] - Controls text colour
+ */
 function showToast(el, msg, type = 'success') {
   if (!el) return;
   el.textContent = msg;
@@ -267,6 +285,10 @@ function showToast(el, msg, type = 'success') {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
+/**
+ * Shows the global floating toast notification.
+ * @param {string} msg - Message to display
+ */
 function showGlobalToast(msg) {
   const t = document.querySelector('#global-toast');
   if (!t) return;

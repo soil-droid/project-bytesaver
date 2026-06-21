@@ -58,6 +58,11 @@ export function renderEquivalency(container, co2Kg) {
   }
 }
 
+/**
+ * Builds the initial equivalency cards HTML.
+ * @param {{ km: number, phones: number, trees: number }} eq
+ * @returns {string} HTML string
+ */
 function buildEquivHTML(eq) {
   return `
     <div class="equiv-grid">
@@ -76,6 +81,11 @@ function buildEquivHTML(eq) {
     </div>`;
 }
 
+/**
+ * Updates only the numeric values inside existing equivalency cards (avoids full re-render).
+ * @param {HTMLElement} root
+ * @param {{ km: number, phones: number, trees: number }} eq
+ */
 function updateEquivValues(root, eq) {
   CARDS.forEach((card) => {
     const el = root.querySelector(`[data-equiv-key="${card.key}"]`);

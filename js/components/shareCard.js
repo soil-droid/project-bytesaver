@@ -6,7 +6,7 @@
  * Provides a "Copy Image" flow via the native Share API or canvas fallback.
  */
 
-import { formatCO2, formatNumber, getCO2Tier } from '../utils/format.js';
+import { formatCO2, formatNumber, getCO2Tier, sanitize } from '../utils/format.js';
 import { getEquivalencies } from '../utils/carbon.js';
 
 /**
@@ -42,9 +42,9 @@ export function renderShareCard(container, data) {
       <div style="margin-bottom:var(--space-4)">
         <div style="font-size:var(--text-xs);color:var(--text-muted);margin-bottom:2px">Saved by</div>
         <div style="font-size:var(--text-lg);font-weight:700;color:var(--text-primary)">
-          ${escapeText(name || 'Anonymous')}
+          ${sanitize(name || 'Anonymous')}
         </div>
-        ${club ? `<div class="badge badge-green" style="margin-top:4px">${escapeText(club)}</div>` : ''}
+        ${club ? `<div class="badge badge-green" style="margin-top:4px">${sanitize(club)}</div>` : ''}
       </div>
 
       <div class="share-total">
@@ -80,7 +80,7 @@ export function renderShareCard(container, data) {
       <div style="display:flex;flex-direction:column;gap:6px;max-height:100px;overflow:hidden">
         ${entries.slice(0, 4).map((e) => `
           <div style="display:flex;justify-content:space-between;font-size:var(--text-xs)">
-            <span style="color:var(--text-secondary)">${escapeText(e.label || e.category)}</span>
+            <span style="color:var(--text-secondary)">${sanitize(e.label || e.category)}</span>
             <span style="color:var(--green-400);font-family:var(--font-mono)">${formatCO2(e.co2Kg)}</span>
           </div>`).join('')}
         ${entries.length > 4 ? `<div style="font-size:10px;color:var(--text-muted)">+${entries.length - 4} more items</div>` : ''}
@@ -177,8 +177,4 @@ function showPrintGuide() {
   );
 }
 
-function escapeText(str) {
-  const el = document.createElement('div');
-  el.textContent = String(str).slice(0, 60);
-  return el.innerHTML;
-}
+// Note: HTML escaping is handled by sanitize() imported from format.js

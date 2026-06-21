@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>ByteSaver — Test Runner</title>
+  <meta name="description" content="Browser-based unit test runner for Project ByteSaver utility functions."/>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,21 +24,33 @@
       border-bottom: 1px solid rgba(0,230,118,0.15);
     }
     h1 { font-size: 1.5rem; color: #00e676; }
+    h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #9fc9b0;
+      margin: 1.5rem 0 0.75rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0,230,118,0.04);
+      border-left: 3px solid rgba(0,230,118,0.3);
+      border-radius: 0 6px 6px 0;
+    }
     .subtitle { font-size: 0.875rem; color: #5a8070; }
-    .summary {
-      display: flex;
-      gap: 1.5rem;
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
       margin-bottom: 2rem;
+    }
+    .summary-card {
       padding: 1.25rem 1.5rem;
       background: rgba(9,21,16,0.8);
       border: 1px solid rgba(0,230,118,0.15);
       border-radius: 12px;
-      flex-wrap: wrap;
+      text-align: center;
     }
-    .summary-item { text-align: center; }
     .summary-num {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 2rem;
+      font-size: 2.25rem;
       font-weight: 600;
       line-height: 1;
     }
@@ -45,27 +58,51 @@
     .pass-num { color: #00e676; }
     .fail-num { color: #f87171; }
     .total-num { color: #9fc9b0; }
-    .tests { display: flex; flex-direction: column; gap: 0.5rem; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .status-badge.all-pass {
+      background: rgba(0,230,118,0.12);
+      color: #00e676;
+      border: 1px solid rgba(0,230,118,0.25);
+    }
+    .status-badge.has-fail {
+      background: rgba(248,113,113,0.1);
+      color: #f87171;
+      border: 1px solid rgba(248,113,113,0.25);
+    }
+    .tests { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 2rem; }
     .test {
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
-      padding: 0.75rem 1rem;
+      padding: 0.65rem 1rem;
       border-radius: 8px;
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       border: 1px solid transparent;
     }
     .test.pass {
-      background: rgba(0,192,90,0.05);
-      border-color: rgba(0,192,90,0.15);
+      background: rgba(0,192,90,0.04);
+      border-color: rgba(0,192,90,0.12);
     }
     .test.fail {
       background: rgba(248,113,113,0.05);
       border-color: rgba(248,113,113,0.2);
     }
-    .test-icon { flex-shrink: 0; font-size: 1rem; }
-    .test-desc { color: #c9d9cf; flex: 1; font-family: 'JetBrains Mono', monospace; }
-    .test-detail { font-size: 0.75rem; color: #5a8070; margin-top: 2px; }
+    .test-icon { flex-shrink: 0; font-size: 0.875rem; line-height: 1.4; }
+    .test-desc {
+      color: #c9d9cf;
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-word;
+    }
+    .test-detail { font-size: 0.7rem; color: #5a8070; margin-top: 2px; }
     .test-detail.fail-detail { color: #f87171; }
     .loading { color: #5a8070; font-style: italic; }
     .back-btn {
@@ -83,70 +120,110 @@
       margin-bottom: 1.5rem;
     }
     .back-btn:hover { background: rgba(0,192,90,0.15); }
+    .suite-divider { border: none; border-top: 1px solid rgba(0,230,118,0.08); margin: 1.5rem 0 0; }
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0,230,118,0.1);
+      font-size: 0.75rem;
+      color: #3d6050;
+    }
   </style>
 </head>
 <body>
-  <a href="../index.html" class="back-btn">← Back to ByteSaver</a>
+  <a href="../index.html" class="back-btn" aria-label="Back to ByteSaver app">← Back to ByteSaver</a>
 
-  <div class="header">
-    <span style="font-size:2rem">🌿</span>
+  <div class="header" role="banner">
+    <span style="font-size:2rem" aria-hidden="true">🌿</span>
     <div>
       <h1>ByteSaver Test Runner</h1>
-      <div class="subtitle">Carbon utility unit tests · carbon.test.js</div>
+      <div class="subtitle">Unit tests for carbon.js &amp; format.js utility modules</div>
     </div>
   </div>
 
-  <div class="summary" id="summary">
+  <!-- Combined summary -->
+  <div class="summary-grid" id="summary" aria-label="Test summary" aria-live="polite">
     <div class="loading">Running tests…</div>
   </div>
 
-  <div class="tests" id="tests-output" role="list" aria-label="Test results">
+  <!-- carbon.js suite -->
+  <h2 id="suite-carbon-title">carbon.js — CO₂ math utilities</h2>
+  <div class="tests" id="suite-carbon" role="list" aria-labelledby="suite-carbon-title">
     <div class="loading">Loading…</div>
   </div>
 
+  <hr class="suite-divider"/>
+
+  <!-- format.js suite -->
+  <h2 id="suite-format-title">format.js — display formatting utilities</h2>
+  <div class="tests" id="suite-format" role="list" aria-labelledby="suite-format-title">
+    <div class="loading">Loading…</div>
+  </div>
+
+  <footer class="footer">
+    <p>Sources: IEA, EPA, Carbon Trust, USDA Forest Service · Project ByteSaver</p>
+  </footer>
+
   <script type="module">
-    import { getTestResults, runSummary } from './carbon.test.js';
+    import { getTestResults as carbonResults, runSummary as carbonSummary } from './carbon.test.js';
+    import { getTestResults as formatResults, runSummary as formatSummary } from './format.test.js';
 
-    const results = getTestResults();
-    const { pass, fail, total } = runSummary();
+    /**
+     * Renders a list of test result objects into a container element.
+     * @param {HTMLElement} container
+     * @param {Array<{description:string, actual:*, expected:*, pass:boolean}>} results
+     */
+    function renderSuite(container, results) {
+      container.innerHTML = results.map((r) => `
+        <div class="test ${r.pass ? 'pass' : 'fail'}" role="listitem"
+             aria-label="${r.pass ? 'PASS' : 'FAIL'}: ${r.description}">
+          <span class="test-icon" aria-hidden="true">${r.pass ? '✅' : '❌'}</span>
+          <div>
+            <div class="test-desc">${r.description}</div>
+            ${!r.pass
+              ? `<div class="test-detail fail-detail">Expected: ${JSON.stringify(r.expected)} · Got: ${JSON.stringify(r.actual)}</div>`
+              : `<div class="test-detail">→ ${JSON.stringify(r.actual)}</div>`
+            }
+          </div>
+        </div>`).join('');
+    }
 
-    // Summary
+    // Run suites
+    const cResults = carbonResults();
+    const fResults = formatResults();
+    const cSum     = carbonSummary();
+    const fSum     = formatSummary();
+
+    const totalPass = cSum.pass + fSum.pass;
+    const totalFail = cSum.fail + fSum.fail;
+    const totalAll  = cSum.total + fSum.total;
+
+    // Combined summary cards
     document.querySelector('#summary').innerHTML = `
-      <div class="summary-item">
-        <div class="summary-num pass-num">${pass}</div>
+      <div class="summary-card">
+        <div class="summary-num pass-num">${totalPass}</div>
         <div class="summary-lbl">Passed</div>
       </div>
-      <div class="summary-item">
-        <div class="summary-num fail-num">${fail}</div>
+      <div class="summary-card">
+        <div class="summary-num fail-num">${totalFail}</div>
         <div class="summary-lbl">Failed</div>
       </div>
-      <div class="summary-item">
-        <div class="summary-num total-num">${total}</div>
+      <div class="summary-card">
+        <div class="summary-num total-num">${totalAll}</div>
         <div class="summary-lbl">Total</div>
       </div>
-      <div class="summary-item" style="margin-left:auto;align-self:center">
-        ${fail === 0
-          ? '<span style="color:#00e676;font-weight:600">✅ All tests passed!</span>'
-          : `<span style="color:#f87171;font-weight:600">❌ ${fail} test${fail > 1 ? 's' : ''} failed</span>`
-        }
+      <div class="summary-card" style="display:flex;align-items:center;justify-content:center">
+        <span class="status-badge ${totalFail === 0 ? 'all-pass' : 'has-fail'}">
+          ${totalFail === 0 ? '✅ All tests passed!' : `❌ ${totalFail} test${totalFail > 1 ? 's' : ''} failed`}
+        </span>
       </div>`;
 
-    // Individual results
-    const output = document.querySelector('#tests-output');
-    output.innerHTML = results.map((r) => `
-      <div class="test ${r.pass ? 'pass' : 'fail'}" role="listitem" aria-label="${r.pass ? 'PASS' : 'FAIL'}: ${r.description}">
-        <span class="test-icon">${r.pass ? '✅' : '❌'}</span>
-        <div>
-          <div class="test-desc">${r.description}</div>
-          ${!r.pass
-            ? `<div class="test-detail fail-detail">Expected: ${r.expected} · Got: ${r.actual}</div>`
-            : `<div class="test-detail">→ ${r.actual}</div>`
-          }
-        </div>
-      </div>`).join('');
+    // Per-suite results
+    renderSuite(document.querySelector('#suite-carbon'), cResults);
+    renderSuite(document.querySelector('#suite-format'), fResults);
 
-    // Page title
-    document.title = `ByteSaver Tests — ${pass}/${total} passed`;
+    // Dynamic page title
+    document.title = `ByteSaver Tests — ${totalPass}/${totalAll} passed`;
   </script>
 </body>
 </html>
