@@ -13,6 +13,7 @@ import {
   formatSize,
   getCO2Tier,
   truncate,
+  sanitize,
 } from '../js/utils/format.js';
 
 // ── Test Runner (shared contract) ─────────────────────────────
@@ -213,6 +214,32 @@ assertEqual(
   'truncate default maxLen=50',
   truncate('a'.repeat(51)),
   'a'.repeat(49) + '…'
+);
+
+// ── sanitize ───────────────────────────────────────────────────────
+
+assertEqual(
+  'sanitize plain text passes through unchanged',
+  sanitize('hello world'),
+  'hello world'
+);
+
+assertEqual(
+  'sanitize escapes < and > to HTML entities',
+  sanitize('<script>alert(1)</script>'),
+  '&lt;script&gt;alert(1)&lt;/script&gt;'
+);
+
+assertEqual(
+  'sanitize escapes ampersand',
+  sanitize('A & B'),
+  'A &amp; B'
+);
+
+assertEqual(
+  'sanitize coerces non-strings via String()',
+  sanitize(42),
+  '42'
 );
 
 // ── Export Results ────────────────────────────────────────────

@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn:    document.querySelector('#chat-send'),
   });
 
+  // Chat close button — wired here instead of onclick attribute in HTML
+  document.querySelector('#btn-chat-close')?.addEventListener('click', () => {
+    document.querySelector('#chat-fab')?.click();
+  });
+
   // Settings modal
   initSettingsModal();
 
@@ -175,6 +180,8 @@ function initSettingsModal() {
 
   openBtn?.addEventListener('click', openModal);
   closeBtn?.addEventListener('click', closeModal);
+  // Cancel button (second close trigger in the footer of the modal)
+  document.querySelector('#btn-settings-cancel')?.addEventListener('click', closeModal);
   overlay?.addEventListener('click', (e) => {
     if (e.target === overlay) closeModal();
   });

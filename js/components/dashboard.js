@@ -78,9 +78,13 @@ export function mountDashboard(container, refs = {}) {
   updateTotals(root, refs);
 }
 
+/**
+ * Builds the static HTML skeleton for the dashboard panel.
+ * @returns {string} HTML string
+ */
 function buildDashboardHTML() {
   return `
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-8);align-items:start">
+  <div class="dashboard-grid">
 
     <!-- LEFT: Input Form -->
     <div class="card card-glass">
@@ -177,7 +181,7 @@ function buildDashboardHTML() {
     </div>
 
     <!-- RIGHT: Stats + Log -->
-    <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+    <div class="dashboard-stats">
 
       <!-- Total CO₂ stat -->
       <div class="card card-glass text-center animate-pulse" style="text-align:center;padding:var(--space-8)" aria-live="polite">
@@ -232,6 +236,10 @@ function buildDashboardHTML() {
   </div>`;
 }
 
+/**
+ * Initialises accessible tooltip triggers for all [data-tooltip] spans.
+ * @param {HTMLElement} root
+ */
 function attachTooltips(root) {
   // Tooltip init on [data-tooltip] spans
   root.querySelectorAll('[data-tooltip]').forEach((el) => {
@@ -243,6 +251,11 @@ function attachTooltips(root) {
   });
 }
 
+/**
+ * Wires all interactive events for the cleanup form.
+ * @param {HTMLElement} root - Dashboard root element
+ * @param {object} refs - { equivContainer, shareContainer, leaderContainer }
+ */
 function wireForm(root, refs) {
   const form        = root.querySelector('#cleanup-form');
   const amountInput = root.querySelector('#input-amount');
@@ -324,15 +337,35 @@ function wireForm(root, refs) {
     if (refs.leaderContainer) renderLeaderboard(refs.leaderContainer);
   });
 
-  // Clear all
+  // Clear all — uses an inline confirm instead of the blocking window.confirm()
   clearBtn.addEventListener('click', () => {
-    if (!confirm('Clear all log entries? This cannot be undone.')) return;
-    state.entries = [];
-    saveLog();
-    renderLog(root);
-    updateTotals(root, refs);
-    clearBtn.style.display = 'none';
-    shareBtn.style.display = 'none';
+    // Show inline confirmation inside the button itself
+    const originalHTML = clearBtn.innerHTML;
+    clearBtn.textContent = 'Confirm? (click again)';
+    clearBtn.style.background = 'rgba(248,113,113,0.2)';
+    clearBtn.dataset.confirming = 'true';
+
+    const resetBtn = () => {
+      clearBtn.innerHTML = originalHTML;
+      clearBtn.style.background = '';
+      delete clearBtn.dataset.confirming;
+    };
+
+    // Auto-reset after 3 seconds if user doesn’t click again
+    const timer = setTimeout(resetBtn, 3000);
+
+    // Second click confirms
+    clearBtn.addEventListener('click', function onConfirm() {
+      clearTimeout(timer);
+      resetBtn();
+      clearBtn.removeEventListener('click', onConfirm);
+      state.entries = [];
+      saveLog();
+      renderLog(root);
+      updateTotals(root, refs);
+      clearBtn.style.display = 'none';
+      shareBtn.style.display = 'none';
+    }, { once: true });
   });
 
   // Show share card
@@ -356,6 +389,11 @@ function wireForm(root, refs) {
   }
 }
 
+/**
+ * Updates the live CO₂ preview text below the amount input.
+ * @param {string} val  - Raw input value string
+ * @param {HTMLElement} previewEl - Element to write the preview into
+ */
 function updatePreview(val, previewEl) {
   const n = parseFloat(val);
   if (!val || isNaN(n) || n <= 0) {
@@ -366,6 +404,12 @@ function updatePreview(val, previewEl) {
   previewEl.textContent = `≈ ${formatCO2(kg)} CO₂ saved per year`;
 }
 
+/**
+ * Computes kg CO₂ from an amount and unit string.
+ * @param {number} value
+ * @param {'GB'|'MB'|'EMAIL'} unit
+ * @returns {number} kg CO₂
+ */
 function computeCO2(value, unit) {
   switch (unit) {
     case 'GB':    return gbToCO2Kg(value);
@@ -375,6 +419,10 @@ function computeCO2(value, unit) {
   }
 }
 
+/**
+ * Re-renders the cleanup log list inside the dashboard.
+ * @param {HTMLElement} root
+ */
 function renderLog(root) {
   const container = root.querySelector('#log-list-container');
   if (!container) return;
@@ -427,6 +475,11 @@ function renderLog(root) {
   });
 }
 
+/**
+ * Updates the CO₂ total display, tier badge, progress bar, and equivalency cards.
+ * @param {HTMLElement} root
+ * @param {object} refs - { equivContainer }
+ */
 function updateTotals(root, refs) {
   const total   = totalCO2Kg(state.entries);
   const tier    = getCO2Tier(total);
@@ -450,6 +503,11 @@ function updateTotals(root, refs) {
   if (refs.equivContainer) renderEquivalency(refs.equivContainer, total);
 }
 
+/**
+ * Displays an inline error message, then hides it after 5 seconds.
+ * @param {HTMLElement} el  - Error container element
+ * @param {string}      msg - Error message text
+ */
 function showError(el, msg) {
   el.textContent = msg;
   el.style.display = 'block';

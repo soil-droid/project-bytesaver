@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "eqeqeq": ["error", "always"],
+    "no-var": "error",
+    "prefer-const": "warn",
+    "prefer-template": "warn",
+    "no-alert": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "curly": ["error", "all"],
+    "default-case": "warn",
+    "no-fallthrough": "error",
+    "no-return-assign": "error",
+    "no-throw-literal": "error",
+    "require-await": "warn",
+    "no-duplicate-imports": "error",
+    "no-useless-rename": "warn",
+    "object-shorthand": "warn",
+    "prefer-arrow-callback": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "*.min.js"
+  ]
+}

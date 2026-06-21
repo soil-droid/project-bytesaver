@@ -9,6 +9,18 @@
 import { gbToCO2Kg, emailsToCO2Kg, getEquivalencies } from '../utils/carbon.js';
 import { formatCO2, formatNumber } from '../utils/format.js';
 
+/** Maximum CO₂ value the gauge represents (100 GB + 10k emails). */
+const GAUGE_MAX_KG = 26;
+
+/** Gauge arc radius in SVG user units. */
+const GAUGE_RADIUS = 70;
+
+/** Gauge centre-x in SVG user units. */
+const GAUGE_CX = 80;
+
+/** Gauge centre-y in SVG user units. */
+const GAUGE_CY = 80;
+
 /**
  * Mounts the impact simulator into the given container.
  * @param {string|HTMLElement} container
@@ -39,21 +51,17 @@ export function mountSimulator(container) {
     const totalKg = gbToCO2Kg(gb) + emailsToCO2Kg(emails);
     co2Display.textContent = formatCO2(totalKg);
 
-    // Update gauge (half-circle: 0–100 GB+10k emails ≈ max ~25.04 kg)
-    const maxKg = 26;
-    const pct   = Math.min(totalKg / maxKg, 1);
+    // Update gauge (half-circle: 0–100 GB + 10k emails ≈ max ~25.04 kg)
+    const pct   = Math.min(totalKg / GAUGE_MAX_KG, 1);
     const angle = pct * 180; // degrees (0° = left, 180° = right)
     const rad   = (angle - 180) * (Math.PI / 180);
-    const r     = 70;
-    const cx    = 80;
-    const cy    = 80;
-    const x     = cx + r * Math.cos(rad);
-    const y     = cy + r * Math.sin(rad);
+    const x     = GAUGE_CX + GAUGE_RADIUS * Math.cos(rad);
+    const y     = GAUGE_CY + GAUGE_RADIUS * Math.sin(rad);
     if (gaugeArc) {
       gaugeArc.setAttribute('d',
-        `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)}`
+        `M ${GAUGE_CX - GAUGE_RADIUS} ${GAUGE_CY} A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 ${x.toFixed(2)} ${y.toFixed(2)}`
       );
-      // Color shift green→amber→red
+      // Colour shifts green → amber → red as usage increases
       const hue = Math.round(120 - pct * 130);
       gaugeArc.setAttribute('stroke', `hsl(${hue},90%,55%)`);
     }
@@ -108,7 +116,6 @@ function updateSliderFill(slider) {
  * Returns the full HTML markup for the simulator panel.
  * @returns {string} HTML string
  */
-function buildSimulatorHTML() {
   return `
     <div class="simulator-card">
       <p class="section-desc" style="margin-top:0;margin-bottom:var(--space-8)">
@@ -116,15 +123,15 @@ function buildSimulatorHTML() {
         No data is logged here.
       </p>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-8)">
+      <div class="simulator-grid">
 
         <!-- Sliders -->
-        <div style="display:flex;flex-direction:column;gap:var(--space-6)">
+        <div class="simulator-sliders">
 
           <div class="slider-group" role="group" aria-labelledby="lbl-storage">
             <div class="slider-header">
               <label id="lbl-storage" class="slider-label" for="sim-storage">
-                ☁️ Cloud Storage to delete
+                &#9729;&#65039; Cloud Storage to delete
               </label>
               <span class="slider-value" id="sim-storage-val" aria-live="polite">10 GB</span>
             </div>
@@ -144,7 +151,7 @@ function buildSimulatorHTML() {
           <div class="slider-group" role="group" aria-labelledby="lbl-emails">
             <div class="slider-header">
               <label id="lbl-emails" class="slider-label" for="sim-emails">
-                📧 Unread / junk emails to delete
+                &#128231; Unread / junk emails to delete
               </label>
               <span class="slider-value" id="sim-emails-val" aria-live="polite">1,000 emails</span>
             </div>
@@ -162,12 +169,11 @@ function buildSimulatorHTML() {
           </div>
 
           <!-- Mini equivalency row -->
-          <div id="sim-equiv-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);margin-top:var(--space-2)">
-          </div>
+          <div id="sim-equiv-row" class="sim-equiv-row"></div>
         </div>
 
         <!-- Gauge + Result -->
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-4)">
+        <div class="simulator-gauge">
           <div style="position:relative;width:160px;height:90px">
             <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CO₂ savings gauge">
               <!-- Track -->
@@ -195,29 +201,5 @@ function buildSimulatorHTML() {
           </div>
         </div>
       </div>
-    </div>
-
-    <style>
-      .sim-equiv-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 2px;
-        padding: var(--space-2);
-        background: rgba(0,192,90,0.05);
-        border: 1px solid rgba(0,192,90,0.1);
-        border-radius: var(--radius-md);
-        text-align: center;
-        font-size: var(--text-xs);
-        color: var(--text-muted);
-      }
-      .sim-equiv-item strong {
-        font-family: var(--font-mono);
-        color: var(--green-400);
-        font-size: var(--text-sm);
-      }
-      @media(max-width:640px) {
-        .simulator-card > div { grid-template-columns: 1fr !important; }
-      }
-    </style>`;
+    </div>`;
 }
